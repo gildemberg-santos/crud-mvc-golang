@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/gildemberg-santos/picpay-desafio-backend/controller"
+	"github.com/gildemberg-santos/crud-mvc-golang/controller"
 	"github.com/gorilla/mux"
 )
 

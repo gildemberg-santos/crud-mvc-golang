@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gildemberg-santos/picpay-desafio-backend/model"
+	"github.com/gildemberg-santos/crud-mvc-golang/model"
 )
 
 type Response struct {

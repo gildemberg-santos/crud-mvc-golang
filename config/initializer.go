@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	db "github.com/gildemberg-santos/picpay-desafio-backend/model"
-	"github.com/gildemberg-santos/picpay-desafio-backend/routes"
+	db "github.com/gildemberg-santos/crud-mvc-golang/model"
+	"github.com/gildemberg-santos/crud-mvc-golang/routes"
 )
 
 func Start() {
