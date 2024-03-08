@@ -11,10 +11,10 @@ func NewRouter() *mux.Router {
 	r.Use(controller.LoggingMiddleware)
 
 	r.HandleFunc("/user", controller.UserCreateController).Methods("POST")
-	r.HandleFunc("/users", controller.UserAllController).Methods("GET")
+	r.HandleFunc("/users", controller.UserFindAllController).Methods("GET")
 	r.HandleFunc("/user/{id}", controller.UserUpdateController).Methods("PUT")
-	r.HandleFunc("/user/{id}", controller.UserFindController).Methods("GET")
-	r.HandleFunc("/user/{id}", controller.UserDeleteController).Methods("DELETE")
+	r.HandleFunc("/user/{id}", controller.UserFindByIdController).Methods("GET")
+	r.HandleFunc("/user/{id}", controller.UserDeleteByIdController).Methods("DELETE")
 
 	return r
 }

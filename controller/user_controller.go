@@ -4,44 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gildemberg-santos/crud-mvc-golang/model"
+	"github.com/gildemberg-santos/crud-mvc-golang/entity"
+	"github.com/gildemberg-santos/crud-mvc-golang/service"
 )
-
-type Response struct {
-	Message string
-}
-
-type User struct {
-	Fullname      string
-	TaxIdentifier string
-	Email         string
-	Password      string
-}
 
 func UserCreateController(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	user_request := User{}
-	json.NewDecoder(r.Body).Decode(&user_request)
-
-	var user model.User
-	db, err := model.NewDB(&user)
+	user_request := entity.NewUser(r.Body)
+	err := service.UserCreate(*user_request)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Message: err.Error()})
-		return
-	}
-	user = model.User{
-		Fullname:      user_request.Fullname,
-		TaxIdentifier: user_request.TaxIdentifier,
-		Email:         user_request.Email,
-		Password:      user_request.Password,
-	}
-	result := db.Create(&user)
-
-	if result.Error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: result.Error.Error()})
 		return
 	}
 
@@ -49,62 +23,16 @@ func UserCreateController(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Response{Message: "User created successfully"})
 }
 
-func UserAllController(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	db, err := model.NewDB(&model.User{})
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: err.Error()})
-		return
-	}
-
-	var users []model.User
-	result := db.Find(&users)
-
-	if result.Error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: result.Error.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(users)
-}
-
 func UserUpdateController(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	user_request := User{}
-	json.NewDecoder(r.Body).Decode(&user_request)
+	user_request := entity.NewUser(r.Body)
+	user_request.ID = r.URL.Query().Get("id")
 
-	params := r.URL.Query()
-	id := params.Get("id")
-
-	var user model.User
-	db, err := model.NewDB(&user)
+	err := service.UserUpdate(*user_request)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Message: err.Error()})
-		return
-	}
-
-	result := db.Find(&user, id)
-	if result.Error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: result.Error.Error()})
-		return
-	}
-
-	user.Fullname = user_request.Fullname
-	user.TaxIdentifier = user_request.TaxIdentifier
-	user.Email = user_request.Email
-	user.Password = user_request.Password
-
-	result = db.Save(&user)
-	if result.Error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: result.Error.Error()})
 		return
 	}
 
@@ -112,59 +40,47 @@ func UserUpdateController(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Response{Message: "User updated successfully"})
 }
 
-func UserFindController(w http.ResponseWriter, r *http.Request) {
+func UserDeleteByIdController(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	params := r.URL.Query()
-	id := params.Get("id")
+	id := r.URL.Query().Get("id")
 
-	var user model.User
-	db, err := model.NewDB(&user)
+	err := service.UserDeleteByID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{Message: err.Error()})
-		return
-	}
-
-	result := db.Find(&user, id)
-	if result.Error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: result.Error.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
-}
-
-func UserDeleteController(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	params := r.URL.Query()
-	id := params.Get("id")
-
-	var user model.User
-	db, err := model.NewDB(&user)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: err.Error()})
-		return
-	}
-
-	result := db.Find(&user, id)
-	if result.Error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: result.Error.Error()})
-		return
-	}
-
-	result = db.Delete(&user)
-	if result.Error != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Response{Message: result.Error.Error()})
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(Response{Message: "User deleted successfully"})
+}
+
+func UserFindAllController(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	users, err := service.UserFindAll()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Response{Message: err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(users)
+}
+
+func UserFindByIdController(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	id := r.URL.Query().Get("id")
+	user, err := service.UserFindByID(id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Response{Message: err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }
